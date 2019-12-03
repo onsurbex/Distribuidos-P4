@@ -5,11 +5,13 @@
  */
 package centralizedgroups;
 
+import java.io.Serializable;
+
 /**
  *
  * @author verde
  */
-public class GroupMessage {
+public class GroupMessage implements Serializable{
     GroupMember sender;
     byte[] msg;
     

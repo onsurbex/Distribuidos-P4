@@ -38,6 +38,7 @@ public interface GroupServerInterface extends Remote{
     public GroupMember isMember(String groupAlias, String alias) throws RemoteException;
     
     public boolean sendGroupMessage(GroupMember gm, byte[] msg) throws RemoteException;
+    
     //public boolean StopMembers(String groupAlias) throws RemoteException;
     
     //public boolean AllowMembers(String groupAlias) throws RemoteException;
