@@ -14,7 +14,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,9 +26,12 @@ import java.util.logging.Logger;
  * @author onsur & green
  */
 public class Client extends UnicastRemoteObject implements ClientInterface {
-    
+    static GroupServerInterface server;
     String clientAlias;
     String hostname;
+    ReentrantLock lock;
+    Queue<GroupMessage> cola;
+    Condition cond;
     
     public Client() throws RemoteException{
         super();
@@ -36,7 +42,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         }
         
         Scanner s = new Scanner(System.in);
-        
+        cola = new LinkedList<>();
+        lock = new ReentrantLock();
+        cond = lock.newCondition();
         System.out.println("Introduzca el alias: ");
         this.clientAlias = s.nextLine();
     }
@@ -45,7 +53,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\S.-Distribuidos-P3\\CentralizedGroups\\ClientPolicy");
         System.setSecurityManager(new SecurityManager());
         
-        GroupServerInterface server = null;
+        server = null;
         
         if(args.length == 0){
             System.out.println("Falta el hostname como argumanto del programa");
@@ -184,5 +192,51 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                 }
             }
         }
+    }
+
+    @Override
+    public void DepositMessage(GroupMessage m) {
+        lock.lock();
+        try {
+            cola.add(m);
+            cond.signal();<
+        }
+        finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public byte[] recieveGroupMessage(String galias) {
+        lock.lock();
+        try {
+            //existe galias en server?
+            if (server.findGroup(galias) == -1){
+                return null;
+            }
+            //el cliente esta en galias?
+            if (server.isMember(galias, clientAlias) == null ){
+                return null;
+            }
+            //whiel..e..e.e
+            while(true){
+                for(GroupMessage message: cola){
+                    if(server.isMember(galias, message.sender.alias) != null){
+                        GroupMessage m = message;
+                        cola.remove(message);
+                        return m.msg;
+                    }
+                }
+                cond.await();
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            lock.unlock();
+        }
+        return null;
     }
 }
