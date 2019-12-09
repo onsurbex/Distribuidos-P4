@@ -48,7 +48,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         System.out.println("Introduzca el alias: ");
         this.clientAlias = s.nextLine();
     }
-    
+
     public static void main(String[] args) throws RemoteException{
         System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\S.-Distribuidos-P3\\CentralizedGroups\\ClientPolicy");
         System.setSecurityManager(new SecurityManager());
@@ -71,6 +71,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         Client client = new Client();
         String memberAlias = null;
         String groupAlias = null;
+        int nport;
         int res; 
         LinkedList<String> namelist;
         int option = 0;
@@ -109,7 +110,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         
                         System.out.println("Introduzca un alias para el grupo: ");
                         groupAlias = s.nextLine();
-                        res = server.createGroup(groupAlias, client.clientAlias, client.hostname);
+                        System.out.println("Introduzca un numero de puerto para el grupo: ");
+                        nport = s.nextInt();
+                        s.nextLine();
+                        res = server.createGroup(groupAlias, client.clientAlias, client.hostname,nport);
                         if(res == -1){
                             System.out.println("ERROR al crear el grupo");
                         } else {
@@ -130,8 +134,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         
                         System.out.println("Introduzca alias para el miembro del grupo: ");
                         memberAlias = s.nextLine();
-                        
-                        if(server.addMember(groupAlias, memberAlias, client.hostname) != null)
+                        System.out.println("Introduzca un numero de puerto para el grupo: ");
+                        nport = s.nextInt();
+                        s.nextLine();
+                        if(server.addMember(groupAlias, memberAlias, client.hostname, nport) != null)
                             System.out.println("Mimbro creado correctamente");
                         else
                             System.out.println("Error al crear el miembro");
@@ -145,24 +151,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                             System.out.println("ERROR: usuario no expulsado");
                         else
                             System.out.println("El usuario "+alias+" ha sido expulsado de "+groupAlias);
-                        break;
-                    case (5):
-                        System.out.println("Introduzca alias del grupo: ");
-                        groupAlias = s.nextLine();
-                        if(server.StopMembers(groupAlias))
-                            System.out.println("Altas y bajas bloqueadas CORRECTAMENTE");
-                        else
-                            System.out.println("ERROR al bloquear las altas/bajas");
-                        break;
-                    case (6):
-                        System.out.println("Nombra el grupo a desbloquear");
-                        groupAlias = s.nextLine();
-                        
-                        if(!server.AllowMembers(groupAlias))
-                            System.out.println("ERROR: El grupo no existe");
-                        else
-                            System.out.println(groupAlias + " ha sido desbloqueado");
-                        break;
+                        break;                    
                     case (7):
                         System.out.println("Introduzca alias del grupo a mostrar: ");
                         groupAlias = s.nextLine();
@@ -199,7 +188,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         lock.lock();
         try {
             cola.add(m);
-            cond.signal();<
+            cond.signal();
         }
         finally {
             lock.unlock();

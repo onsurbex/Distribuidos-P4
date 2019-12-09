@@ -22,6 +22,8 @@ public class ObjectGroup {
     ReentrantLock lock = new ReentrantLock();
     Condition condition = lock.newCondition();
     boolean locked = false;
+    private int membercount;
+    int sendcount;
     
     public ObjectGroup(String groupAlias, int groupID, String ownerAlias, String hostname, int nport){
         this.groupAlias = groupAlias;
@@ -30,6 +32,8 @@ public class ObjectGroup {
         memberList = new LinkedList<>();
         memberList.add(owner);
         this.counter++;
+        membercount = 1;
+        sendcount = 0;
     }
     
     public GroupMember isMember(String memberAlias){
@@ -62,6 +66,7 @@ public class ObjectGroup {
             if(isMember(memberAlias) == null){                
                 m = new GroupMember(memberAlias,hostname,counter,this.groupID, nport);
                 this.counter++;
+                this.membercount++;
                 this.memberList.add(m);
                 return m;
             } else {
@@ -116,9 +121,44 @@ public class ObjectGroup {
         }
     }*/
     
+    void Sending(){
+        lock.lock();
+        try{
+            this.sendcount += this.membercount - 1;
+            if (this.sendcount > 0)
+                this.locked = true;
+        }finally{
+            lock.unlock();
+        }
+    }
+    
+    void EndSending(){
+        lock.lock();
+        try{
+            this.sendcount--;
+            if(this.sendcount == 0){
+                this.locked = false;
+                condition.signalAll();
+            }
+        }finally{
+            lock.unlock();
+        }
+    }
+    
+    
+    
     public boolean sendGroupMessage(GroupMember gm, byte[] msg){
-        //not implemented
-        return false;
+        lock.lock();
+        try{
+            this.Sending();
+            for (GroupMember m : this.memberList){
+                GroupMessage group_msg = new GroupMessage(gm,msg);
+                SendingMessage sm = new SendingMessage(group_msg, this, m);
+            }
+            return true;
+        } finally {
+            lock.unlock();
+        }
     }
     
     LinkedList<String> ListMembers(){
