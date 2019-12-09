@@ -13,6 +13,6 @@ import java.rmi.RemoteException;
  * @author onsur
  */
 public interface ClientInterface {
-    void DepositMessage(GroupMessage m); //necesita reentrantlock
-    byte[] recieveGroupMessage(String galias);
+    public void DepositMessage(GroupMessage m); //necesita reentrantlock
+    public byte[] recieveGroupMessage(String galias);
 }

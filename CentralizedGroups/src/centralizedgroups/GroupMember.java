@@ -24,6 +24,7 @@ public class GroupMember implements Serializable{
      * @param hostname Name of the host
      * @param memberID Member ID
      * @param groupID Group ID
+     * @param nport
      */
     public GroupMember(String alias, String hostname, int memberID, int groupID, int nport){
         this.alias = alias;

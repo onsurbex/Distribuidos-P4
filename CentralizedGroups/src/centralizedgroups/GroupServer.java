@@ -239,18 +239,25 @@ public class GroupServer extends UnicastRemoteObject implements GroupServerInter
     
     @Override
     public boolean sendGroupMessage(GroupMember gm, byte[] msg){
-        int group_id = gm.groupID;
-        for (ObjectGroup og : this.groupList){
-            if (og.groupID == group_id){
-                return og.sendGroupMessage(gm, msg);
+        lock.lock();
+        try {
+            int group_id = gm.groupID;
+            for (ObjectGroup og : this.groupList){
+                if (og.groupID == group_id){
+                    return og.sendGroupMessage(gm, msg);
+                }
             }
+            System.out.println("ERROR: group_id not found");
+            return false;
         }
-        System.out.println("ERROR: group_id not found");
-        return false;
+        finally {
+            lock.unlock();
+        }
+        
     }
     
     public static void main(String[] args){
-        System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\S.-Distribuidos-P3\\CentralizedGroups\\politicaDelServidor");
+        System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\Distribuidos-P4\\CentralizedGroups\\politicaDelServidor");
         if(System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
         }

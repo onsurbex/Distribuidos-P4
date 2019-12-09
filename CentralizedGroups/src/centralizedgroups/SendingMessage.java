@@ -37,7 +37,7 @@ class SendingMessage extends Thread {
         Random rand = new Random();
         int retraso = (rand.nextInt(30)+30)*1000;
         try {
-            System.setProperty("java.security.policy", "C:\\Users\\onsur\\Documents\\NetBeansProjects\\Distribuidos-P4\\CentralizedGroups\\politicaDelServidor");
+            System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\Distribuidos-P4\\CentralizedGroups\\politicaDelServidor");
             if(System.getSecurityManager() == null) {
                 System.setSecurityManager(new SecurityManager());
             }
