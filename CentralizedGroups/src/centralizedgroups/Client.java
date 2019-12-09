@@ -56,9 +56,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     }
 
     public static void main(String[] args) throws RemoteException{
-        System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\S.-Distribuidos-P3\\CentralizedGroups\\ClientPolicy");
+        System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\Distribuidos-P4\\CentralizedGroups\\ClientPolicy");
         System.setSecurityManager(new SecurityManager());
-        int nport = 1099;
         server = null;
         
         if(args.length == 0){
@@ -97,8 +96,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
             System.out.println(" 2. Eliminar grupo");
             System.out.println(" 3. Añadir miembro al grupo");
             System.out.println(" 4. Eliminar miembro del grupo");
-            System.out.println(" 5. Bloquear altas/bajas");
-            System.out.println(" 6. Desbloquear altas/bajas");
+            System.out.println(" 5. Enviar Mensaje");
+            System.out.println(" 6. Recibir Mensaje");
             System.out.println(" 7. Mostrar miembros del grupo");
             System.out.println(" 8. Mostrar grupos actuales");
             System.out.println(" 9. Salir");
@@ -122,7 +121,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         
                         System.out.println("Introduzca un alias para el grupo: ");
                         groupAlias = s.nextLine();
-                        res = server.createGroup(groupAlias, client.clientAlias, client.hostname, nport);
+                        res = server.createGroup(groupAlias, client.clientAlias, client.hostname, client.nport);
                         if(res == -1){
                             System.out.println("ERROR al crear el grupo");
                         } else {
@@ -144,7 +143,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         System.out.println("Introduzca alias para el miembro del grupo: ");
                         memberAlias = s.nextLine();
                         
-                        if(server.addMember(groupAlias, memberAlias, client.hostname, nport) != null)
+                        if(server.addMember(groupAlias, memberAlias, client.hostname, client.nport) != null)
                             System.out.println("Mimbro creado correctamente");
                         else
                             System.out.println("Error al crear el miembro");
@@ -165,6 +164,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         System.out.println("Introduzca un mensaje: ");
                         String msg = s.nextLine();
                         GroupMember gm = server.isMember(groupalias, client.clientAlias);
+                        if (gm == null){
+                            System.out.println("Error: miembro nulo, mensaje no enviado");
+                            break;
+                        }
                         if (server.sendGroupMessage(gm, msg.getBytes())){
                             System.out.println("Mensaje enviado con exito al grupo " + groupalias);
                         } else {
