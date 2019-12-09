@@ -15,6 +15,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Scanner;
@@ -181,7 +182,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         if(mensaje == null){
                             System.out.println("Error: No existe grupo o el cliente no esta en el grupo");
                         } else {
-                            System.out.println("Mensaje del grupo " + galias + ": " + mensaje.toString());
+                            System.out.println("Mensaje del grupo " + galias + ": " + new String(mensaje));
                         }
                         
                         break;
@@ -217,7 +218,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     }
 
     @Override
-    public void DepositMessage(GroupMessage m) {
+    public void DepositMessage(GroupMessage m) throws RemoteException {
         lock.lock();
         try {
             cola.add(m);
@@ -229,7 +230,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     }
 
     @Override
-    public byte[] recieveGroupMessage(String galias) {
+    public byte[] recieveGroupMessage(String galias) throws RemoteException {
         lock.lock();
         try {
             //existe galias en server?
@@ -249,6 +250,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         return m.msg;
                     }
                 }
+                System.out.println("pues no he encontrao nada");
                 cond.await();
             }
         } catch (RemoteException ex) {

@@ -35,7 +35,8 @@ class SendingMessage extends Thread {
     @Override
     public void run(){
         Random rand = new Random();
-        int retraso = (rand.nextInt(30)+30)*1000;
+        System.out.println("AQUI ESTOY uoUUUUUUUUU");
+        int retraso = (rand.nextInt(1)+1)*1000;
         try {
             System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\Distribuidos-P4\\CentralizedGroups\\politicaDelServidor");
             if(System.getSecurityManager() == null) {
@@ -61,6 +62,7 @@ class SendingMessage extends Thread {
             System.out.println("Mensaje: " + this.gm.msg.toString());
 
             og.EndSending();
+            System.out.println("burno pues el mensaje ya lo he enviao");
         } catch (Exception ex){
             System.out.println("Error: " + ex);
         }

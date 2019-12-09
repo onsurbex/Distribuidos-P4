@@ -12,7 +12,7 @@ import java.rmi.RemoteException;
  *
  * @author onsur
  */
-public interface ClientInterface {
-    public void DepositMessage(GroupMessage m); //necesita reentrantlock
-    public byte[] recieveGroupMessage(String galias);
+public interface ClientInterface extends Remote{
+    public void DepositMessage(GroupMessage m) throws RemoteException; //necesita reentrantlock
+    public byte[] recieveGroupMessage(String galias) throws RemoteException;
 }
