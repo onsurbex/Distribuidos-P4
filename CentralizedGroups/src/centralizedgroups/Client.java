@@ -6,14 +6,17 @@
 package centralizedgroups;
 
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.AccessException;
+import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,6 +34,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     ReentrantLock lock;
     Queue<GroupMessage> cola;
     Condition cond;
+    int nport;
     
     public Client() throws RemoteException{
         super();
@@ -46,12 +50,15 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         cond = lock.newCondition();
         System.out.println("Introduzca el alias: ");
         this.clientAlias = s.nextLine();
+        
+        System.out.println("Introduzca el puerto: ");
+        this.nport = s.nextInt();
     }
 
     public static void main(String[] args) throws RemoteException{
         System.setProperty("java.security.policy", "C:\\Users\\verde\\Documents\\NetBeansProjects\\S.-Distribuidos-P3\\CentralizedGroups\\ClientPolicy");
         System.setSecurityManager(new SecurityManager());
-        
+        int nport = 1099;
         server = null;
         
         if(args.length == 0){
@@ -68,6 +75,13 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         
         
         Client client = new Client();
+        
+        LocateRegistry.createRegistry(client.nport); 
+        try {
+            Naming.rebind("//" + client.hostname + ":" + client.nport + "/" + client.clientAlias, client); //darlo de alta CON SU ALIAS
+        } catch (MalformedURLException ex) {
+            System.out.println("Error al dar de alta en el servicio de registro al cliente: " + ex.toString());
+        }
         String memberAlias = null;
         String groupAlias = null;
         int res; 
@@ -108,7 +122,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         
                         System.out.println("Introduzca un alias para el grupo: ");
                         groupAlias = s.nextLine();
-                        res = server.createGroup(groupAlias, client.clientAlias, client.hostname);
+                        res = server.createGroup(groupAlias, client.clientAlias, client.hostname, nport);
                         if(res == -1){
                             System.out.println("ERROR al crear el grupo");
                         } else {
@@ -130,7 +144,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                         System.out.println("Introduzca alias para el miembro del grupo: ");
                         memberAlias = s.nextLine();
                         
-                        if(server.addMember(groupAlias, memberAlias, client.hostname) != null)
+                        if(server.addMember(groupAlias, memberAlias, client.hostname, nport) != null)
                             System.out.println("Mimbro creado correctamente");
                         else
                             System.out.println("Error al crear el miembro");
@@ -146,21 +160,27 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
                             System.out.println("El usuario "+alias+" ha sido expulsado de "+groupAlias);
                         break;
                     case (5):
-                        System.out.println("Introduzca alias del grupo: ");
-                        groupAlias = s.nextLine();
-                        if(server.StopMembers(groupAlias))
-                            System.out.println("Altas y bajas bloqueadas CORRECTAMENTE");
-                        else
-                            System.out.println("ERROR al bloquear las altas/bajas");
+                        System.out.println("Introduzca un alias del grupo: ");
+                        String groupalias = s.nextLine();
+                        System.out.println("Introduzca un mensaje: ");
+                        String msg = s.nextLine();
+                        GroupMember gm = server.isMember(groupalias, client.clientAlias);
+                        if (server.sendGroupMessage(gm, msg.getBytes())){
+                            System.out.println("Mensaje enviado con exito al grupo " + groupalias);
+                        } else {
+                            System.out.println("ERROR: Mensaje no enviado");
+                        }
                         break;
                     case (6):
-                        System.out.println("Nombra el grupo a desbloquear");
-                        groupAlias = s.nextLine();
+                        System.out.println("Introduzca un alias del grupo: ");
+                        String galias = s.nextLine();
+                        byte[] mensaje = client.recieveGroupMessage(galias);
+                        if(mensaje == null){
+                            System.out.println("Error: No existe grupo o el cliente no esta en el grupo");
+                        } else {
+                            System.out.println("Mensaje del grupo " + galias + ": " + mensaje.toString());
+                        }
                         
-                        if(!server.AllowMembers(groupAlias))
-                            System.out.println("ERROR: El grupo no existe");
-                        else
-                            System.out.println(groupAlias + " ha sido desbloqueado");
                         break;
                     case (7):
                         System.out.println("Introduzca alias del grupo a mostrar: ");
